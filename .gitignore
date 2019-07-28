@@ -1,0 +1,5 @@
+3rdparty/
+build/
+cmake-build-debug/
+data/
+.idea/
