@@ -49,7 +49,7 @@ void discriminantImg::get_img(Mat &img) {
 void discriminantImg::preprocessing(Mat &input, Mat &output) {
 
     // 根据先验信息，得到大致的ROI目标区域。
-    Mat first_roi = input(Rect(700, 440, 700, 480));
+    Mat first_roi = input(Rect(700, 420, 700, 480));
 
     // 灰度化。
     Mat gray;
@@ -66,6 +66,7 @@ void discriminantImg::preprocessing(Mat &input, Mat &output) {
 
     // 得到矩形框。
     Rect rectPoint;
+    Mat mask_temp = Mat::zeros(first_roi.size(), first_roi.type());
     for (int i = 0; i < points.size(); ++i) {
 
         double areas = contourArea(points[i]);

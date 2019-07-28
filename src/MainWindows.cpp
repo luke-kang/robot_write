@@ -53,8 +53,8 @@ void windows::det_module() {
 
     discriminantImg get_label;
     // 1.kinect相机驱动拍照获得图片。
-    Mat img = imread("./xuanzhuan.jpg");
-//    Mat img = imread("../../data/7.png");
+    Mat img = imread("./pingyi.jpg");
+
 //    Mat img;
 //    get_label.get_img(img);
 
