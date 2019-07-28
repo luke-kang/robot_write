@@ -38,15 +38,22 @@ void discriminantImg::get_img(Mat &img) {
     // 开始获取。
     img = Mat(rgb->height, rgb->width, CV_8UC4, rgb->data);
 
+    // 保存。
+//    imwrite("./pingyi.jpg", img);
+
     dev->stop();
     dev->close();
 }
 
 // 图片预处理成标准图片输出。
 void discriminantImg::preprocessing(Mat &input, Mat &output) {
+
+    // 根据先验信息，得到大致的ROI目标区域。
+    Mat first_roi = input(Rect(700, 440, 700, 480));
+
     // 灰度化。
     Mat gray;
-    cvtColor(input, gray, COLOR_BGR2GRAY);
+    cvtColor(first_roi, gray, COLOR_BGR2GRAY);
 
     // 边缘检测。
     Mat canny_gray;
@@ -63,13 +70,11 @@ void discriminantImg::preprocessing(Mat &input, Mat &output) {
 
         double areas = contourArea(points[i]);
 
-        if ((areas < 80000) || (areas > 90000)) continue;
-
+        if (areas < 75000) continue;
         rectPoint = boundingRect(points[i]);
     }
 
-    // TODO: 两种方式：
-
+    // 两种方式： 1.最小外接矩形（做旋转，仿射等变换方便）， 2.普通矩形（截取方便）
     // 得到ROI区域。
     int scale = 50;
     Rect rect = Rect(rectPoint.x + scale, rectPoint.y + scale,
@@ -78,28 +83,25 @@ void discriminantImg::preprocessing(Mat &input, Mat &output) {
 
     // 形态学操作，腐蚀。
     Mat element = getStructuringElement(MORPH_RECT, Size(3, 3));
-    erode(mask, mask, element, Point(-1, -1), 1);
+    erode(mask, mask, element, Point(-1, -1), 2);
 
-    // 设置自定义阈值进行二值化处理。
-    bitwise_not(mask, mask);
-    for (int i = 0; i < mask.rows; ++i) {
-        for (int j = 0; j < mask.cols; ++j) {
-            if (mask.at<uchar>(i, j) < 30) continue;
+    // 二值化操作。
+    adaptiveThreshold(mask, mask, 255, 0, THRESH_BINARY_INV, 13, 3);
+//    bitwise_not(mask, mask);
 
-            mask.at<uchar>(i, j) = 255;
-        }
-    }
+    // 形态学去噪。
+    morphologyEx(mask, mask, MORPH_OPEN, element, Point(-1, -1), 1);
 
     // 翻转操作。
     flip(mask, mask, 1);
+
+    imshow("test", mask);
+    waitKey(0);
 
     // 缩放图片与归一化。
     resize(mask, mask, cv::Size(), 28.0f/mask.cols, 28.0f/mask.rows);
     mask.convertTo(mask, CV_32FC1, 1.0f/255.0f);
 
     output = mask.clone();
-
-//    imshow("test", mask);
-//    waitKey(0);
 }
 
